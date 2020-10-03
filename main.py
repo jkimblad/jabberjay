@@ -65,6 +65,34 @@ def main():
 	show_painting(img)
 
 
+class Population:
+
+	def __init__(self, population_size):
+		self.chomosomes = []
+		self.population_size = population_size
+
+		for i in population_size:
+
+			
+
+	def score_chromosomes(self):
+		pass
+
+	def crossover(self, chromosome_1, chromosome_2):
+		# Queue marvin gaye- lets get it on
+		pass
+
+	def mutate(self, chromosome):
+		pass
+	
+
+class BrushStroke:
+
+	def __init__(self, scale_factor, brightness, pos):
+		self.scale_factor = scale_factor
+		self.brightness = brightness
+		self.pos = pos
+
 
 if __name__ == '__main__':
 	main()
