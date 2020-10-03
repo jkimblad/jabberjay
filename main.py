@@ -37,11 +37,27 @@ def paint(img, brush, pos, brightness):
 
     return img
 
+def paint(img, brush_img, brushstroke):
+    pos = brushstroke.pos
+    brush_img = np.multiply(brush_img, brushstroke.brightness)
+
+    roi = img[pos[0]:pos[0] + brush_img.shape[0], pos[1]:pos[1] + brush_img.shape[1]]
+    roi = cv2.add(roi, brush_img)
+    roi = np.clip(roi, 0.0, 255.0)
+    img[pos[0]:pos[0] + brush_img.shape[0], pos[1]
+        :pos[1] + brush_img.shape[1]] = roi.astype(np.uint8)
+
+    return img
+
 
 def main():
-    # create painting
+    np.random.seed(50) # Set seed for easier debugging
     width = 500
     height = 500
+    # load target image
+    target = cv2.imread("./target.jpg", cv2.IMREAD_GRAYSCALE)
+    target = cv2.resize(target, (width, height), interpolation=cv2.INTER_CUBIC)
+    # create painting
     img = np.zeros([width, height])
 
     # load brush
@@ -49,39 +65,70 @@ def main():
     brush = read_brush(brush_size)
     print(brush.shape)
 
-    # Draw brushstrokes
-    for x in range(100):
+    population = Population(10)
 
-        # get random pos
-        pos = (
+    for i in range(population.population_size):
+        bs = create_random_brushstroke(width, height, brush_size)
+        population.populate(bs)
+
+    population.score_brushstrokes(img, target, brush)
+
+    # # Draw brushstrokes
+    # for x in range(100):
+
+    #     # get random pos
+    #     pos = (
+    #         np.random.randint(width - brush_size, size=1)[0],
+    #         np.random.randint(height - brush_size, size=1)[0]
+    #     )
+
+    #     # print(pos)
+    #     # stroke brush on painting
+    #     img = paint(img, brush, pos, np.random.rand(1)[0])
+
+    # # show painting
+    # show_painting(img)
+
+def create_random_brushstroke(width, height, brush_size):
+    brightness = np.random.rand(1)[0]
+    pos = (
             np.random.randint(width - brush_size, size=1)[0],
             np.random.randint(height - brush_size, size=1)[0]
         )
-
-        # print(pos)
-        # stroke brush on painting
-        img = paint(img, brush, pos, np.random.rand(1)[0])
-
-    # show painting
-    show_painting(img)
-
+    return BrushStroke(-1, brightness, pos)
 
 class Population:
 
     def __init__(self, population_size):
-        self.chomosomes = []
+        self.brushstrokes = []
         self.population_size = population_size
 
-        for i in population_size:
+    def populate(self, brushstroke):
+        self.brushstrokes.append(brushstroke)
 
-    def score_chromosomes(self):
-        pass
+    def score_brushstrokes(self, canvas, target, brush_img):
+        max_score = 255 * target.shape[0] * target.shape[1]
+        for brushstroke in self.brushstrokes:
+            tmp_cavnas = np.copy(canvas)
+            # apply brushstroke
+            tmp_cavnas = paint(tmp_cavnas, brush_img, brushstroke)
+            # check diff from target
+            diff = np.subtract(target, tmp_cavnas)
+            diff = np.abs(diff)
+            diff = np.sum(diff)
+            brushstroke.score = max_score - diff
 
-    def crossover(self, chromosome_1, chromosome_2):
+        def get_score(bs):
+            return bs.score
+
+        self.brushstrokes.sort(key=get_score, reverse=True)
+
+
+    def crossover(self, brushstroke_1, brushstroke_2):
         # Queue marvin gaye- lets get it on
         pass
 
-    def mutate(self, chromosome):
+    def mutate(self, brushstroke):
         pass
 
 
@@ -91,6 +138,7 @@ class BrushStroke:
         self.scale_factor = scale_factor
         self.brightness = brightness
         self.pos = pos
+        self.score = 0
 
 
 if __name__ == '__main__':
