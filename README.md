@@ -33,14 +33,14 @@ Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c6
 
 ## Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository]( https://github.com/jkimblad/jabberjay/tags). 
 
 ## Authors
 
-* **Jakob Kimblad** - *Initial work* - [jkimblad](https://github.com/jkimblad)
+* **Jacob Kimblad** - *Initial work* - [jkimblad](https://github.com/jkimblad)
 * **Julian Hedén** - *Initial work* - [pjheden](https://github.com/pjheden)
 
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/jkimblad/jabberjay/contributors) who participated in this project.
 
 ## License
 
