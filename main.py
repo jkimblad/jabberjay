@@ -18,23 +18,10 @@ def read_brush(size):
 def show_painting(img):
     # Normalize from 0-255 to 0-1 which openCV likes =)
     img = img / 255.0
-    cv2.imshow("image", img)
-    cv2.waitKey()
-
-
-def paint(img, brush, pos, brightness):
-    if img.ndim != brush.ndim:
-        raise Exception("Mismatch in img and brush dimensions")
-
-    brush = np.multiply(brush, brightness)
-
-    roi = img[pos[0]:pos[0] + brush.shape[0], pos[1]:pos[1] + brush.shape[1]]
-    roi = cv2.add(roi, brush)
-    roi = np.clip(roi, 0.0, 255.0)
-    img[pos[0]:pos[0] + brush.shape[0], pos[1]:pos[1] + brush.shape[1]] = roi.astype(np.uint8)
-    print(img)
-
-    return img
+    cv2.imshow('image', img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    cv2.waitKey(1)
 
 
 def paint(img, brush_img, brushstroke):
@@ -45,7 +32,7 @@ def paint(img, brush_img, brushstroke):
               pos[1]:pos[1] + brush_img.shape[1]]
     roi = cv2.add(roi, brush_img)
     roi = np.clip(roi, 0.0, 255.0)
-    img[pos[0]:pos[0] + brush_img.shape[0], pos[1]:pos[1] + brush_img.shape[1]] = roi.astype(np.uint8)
+    img[pos[0]:pos[0] + brush_img.shape[0], pos[1]        :pos[1] + brush_img.shape[1]] = roi.astype(np.uint8)
 
     return img
 
@@ -61,40 +48,37 @@ def main():
     target = cv2.imread("./target.jpg", cv2.IMREAD_GRAYSCALE)
     target = cv2.resize(target, (width, height), interpolation=cv2.INTER_CUBIC)
     # create painting
-    img = np.zeros([width, height])
+    canvas = np.zeros([width, height])
 
     # load brush
     brush_size = 50
-    brush = read_brush(brush_size)
-    print(brush.shape)
+    brush_img = read_brush(brush_size)
 
     population = Population(10)
 
+    # Populate population
+    # TODO: put into population __init__
     for i in range(population.size):
         sl = create_random_strokelayer(
             num_brushstrokes, width, height, brush_size)
         population.populate(sl)
 
-    population.score_strokelayers(img, target, brush)
+    # Evolve unto next generation
+    next_picture = False
+    while True:
+        for i in range(100):
+            population.evolve(
+                mutation_rate,
+                kill_rate,
+                canvas,
+                brush_img,
+                target)
+            # Chose top-scoring stroke_layer and add it to canvas
+            for stroke in population.stroke_layers[0].brush_strokes:
+                canvas = paint(canvas, brush_img, stroke)
 
-    # Selection phase
-    # TODO: check if we should do Tournament or Roulette instead of Rank
-    population.rank(kill_rate)
-
-    # Add offspring
-    i = 0
-    while len(population.stroke_layers) < population.size:
-        offspring = population.crossover(
-            population.stroke_layers[i],
-            population.stroke_layers[i + 1]
-        )
-        # Check for mutation
-        rand = np.random.rand(1)[0]
-        if rand <= mutation_rate:
-            offspring.mutate(mutation_rate)
-
-        population.populate(offspring)
-        i += 1
+        show_painting(canvas)
+        print(population.stroke_layers[0].score)
 
     # # Draw brushstrokes
     # for x in range(100):
@@ -111,6 +95,8 @@ def main():
 
     # # show painting
     # show_painting(img)
+
+# TODO: refactor into population
 
 
 def create_random_strokelayer(num_brushstrokes, width, height, brush_size):
@@ -131,16 +117,40 @@ class Population:
         self.stroke_layers = []
         self.size = size
 
+    # Evolve into next generation
+    # TODO: keep brush_img (and maybe target) out of population
+    def evolve(self, mutation_rate, kill_rate, canvas, brush_img, target):
+        self.__score_strokelayers(canvas, target, brush_img)
+
+        # Selection phase
+        # TODO: check if we should do Tournament or Roulette instead of Rank
+        self.__rank(kill_rate)
+
+        # Add offspring
+        i = 0
+        while len(self.stroke_layers) < self.size:
+            offspring = self.__crossover(
+                self.stroke_layers[i],
+                self.stroke_layers[i + 1]
+            )
+            # Check for mutation
+            rand = np.random.rand(1)[0]
+            if rand <= mutation_rate:
+                offspring.mutate(mutation_rate)
+
+            self.populate(offspring)
+            i += 1
+
     def populate(self, ls):
         self.stroke_layers.append(ls)
 
-    def score_strokelayers(self, canvas, target, brush_img):
+    def __score_strokelayers(self, canvas, target, brush_img):
         max_score = 255 * target.shape[0] * target.shape[1]
         for stroke_layer in self.stroke_layers:
             tmp_cavnas = np.copy(canvas)
             # apply stroke_layer
-            for brushstroke in stroke_layer.brush_strokes:
-                tmp_cavnas = paint(tmp_cavnas, brush_img, brushstroke)
+            for brush_stroke in stroke_layer.brush_strokes:
+                tmp_cavnas = paint(tmp_cavnas, brush_img, brush_stroke)
             # check diff from target
             diff = np.subtract(target, tmp_cavnas)
             diff = np.abs(diff)
@@ -152,20 +162,18 @@ class Population:
 
         self.stroke_layers.sort(key=get_score, reverse=True)
 
-    def crossover(self, strokelayer_1, strokelayer_2):
+    def __crossover(self, strokelayer_1, strokelayer_2):
         # Combine bushstrokes randomly and make children with 5 strokes each
         brush_strokes_1 = strokelayer_1.brush_strokes
         brush_strokes_2 = strokelayer_2.brush_strokes
 
-        brush_stroke_offspring = [
-            brush_strokes_1[1:int(len(brush_strokes_1) / 2)],
-            brush_strokes_2[int(len(brush_strokes_2) / 2):-1]
-        ]
+        brush_stroke_offspring = brush_strokes_1[1:int(
+            len(brush_strokes_1) / 2)] + brush_strokes_2[int(len(brush_strokes_2) / 2):-1]
 
         return StrokeLayer(brush_stroke_offspring)
 
     # Selection methods
-    def rank(self, kill_rate):
+    def __rank(self, kill_rate):
         pop_size = len(self.stroke_layers)
 
         # Check that the kill_rate will leave at least 2 pop
