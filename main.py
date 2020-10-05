@@ -31,29 +31,30 @@ def paint(img, brush, pos, brightness):
     roi = img[pos[0]:pos[0] + brush.shape[0], pos[1]:pos[1] + brush.shape[1]]
     roi = cv2.add(roi, brush)
     roi = np.clip(roi, 0.0, 255.0)
-    img[pos[0]:pos[0] + brush.shape[0], pos[1]
-        :pos[1] + brush.shape[1]] = roi.astype(np.uint8)
+    img[pos[0]:pos[0] + brush.shape[0], pos[1]:pos[1] + brush.shape[1]] = roi.astype(np.uint8)
     print(img)
 
     return img
+
 
 def paint(img, brush_img, brushstroke):
     pos = brushstroke.pos
     brush_img = np.multiply(brush_img, brushstroke.brightness)
 
-    roi = img[pos[0]:pos[0] + brush_img.shape[0], pos[1]:pos[1] + brush_img.shape[1]]
+    roi = img[pos[0]:pos[0] + brush_img.shape[0],
+              pos[1]:pos[1] + brush_img.shape[1]]
     roi = cv2.add(roi, brush_img)
     roi = np.clip(roi, 0.0, 255.0)
-    img[pos[0]:pos[0] + brush_img.shape[0], pos[1]
-        :pos[1] + brush_img.shape[1]] = roi.astype(np.uint8)
+    img[pos[0]:pos[0] + brush_img.shape[0], pos[1]:pos[1] + brush_img.shape[1]] = roi.astype(np.uint8)
 
     return img
 
 
 def main():
-    np.random.seed(50) # Set seed for easier debugging
+    np.random.seed(50)  # Set seed for easier debugging
     width = 500
     height = 500
+    num_brushstrokes = 10
     # load target image
     target = cv2.imread("./target.jpg", cv2.IMREAD_GRAYSCALE)
     target = cv2.resize(target, (width, height), interpolation=cv2.INTER_CUBIC)
@@ -68,10 +69,11 @@ def main():
     population = Population(10)
 
     for i in range(population.population_size):
-        bs = create_random_brushstroke(width, height, brush_size)
-        population.populate(bs)
+        sl = create_random_strokelayer(
+            num_brushstrokes, width, height, brush_size)
+        population.populate(sl)
 
-    population.score_brushstrokes(img, target, brush)
+    population.score_strokelayers(img, target, brush)
 
     # # Draw brushstrokes
     # for x in range(100):
@@ -89,47 +91,59 @@ def main():
     # # show painting
     # show_painting(img)
 
-def create_random_brushstroke(width, height, brush_size):
-    brightness = np.random.rand(1)[0]
-    pos = (
+
+def create_random_strokelayer(num_brushstrokes, width, height, brush_size):
+    brushstrokes = []
+    for i in range(num_brushstrokes):
+        brightness = np.random.rand(1)[0]
+        pos = (
             np.random.randint(width - brush_size, size=1)[0],
             np.random.randint(height - brush_size, size=1)[0]
         )
-    return BrushStroke(-1, brightness, pos)
+        brushstrokes.append(BrushStroke(-1, brightness, pos))
+    return StrokeLayer(brushstrokes)
+
 
 class Population:
 
     def __init__(self, population_size):
-        self.brushstrokes = []
+        self.stroke_layers = []
         self.population_size = population_size
 
-    def populate(self, brushstroke):
-        self.brushstrokes.append(brushstroke)
+    def populate(self, ls):
+        self.stroke_layers.append(ls)
 
-    def score_brushstrokes(self, canvas, target, brush_img):
+    def score_strokelayers(self, canvas, target, brush_img):
         max_score = 255 * target.shape[0] * target.shape[1]
-        for brushstroke in self.brushstrokes:
+        for stroke_layer in self.stroke_layers:
             tmp_cavnas = np.copy(canvas)
-            # apply brushstroke
-            tmp_cavnas = paint(tmp_cavnas, brush_img, brushstroke)
+            # apply stroke_layer
+            for brushstroke in stroke_layer.brush_strokes:
+                tmp_cavnas = paint(tmp_cavnas, brush_img, brushstroke)
             # check diff from target
             diff = np.subtract(target, tmp_cavnas)
             diff = np.abs(diff)
             diff = np.sum(diff)
-            brushstroke.score = max_score - diff
+            stroke_layer.score = max_score - diff
 
-        def get_score(bs):
-            return bs.score
+        def get_score(ls):
+            return ls.score
 
-        self.brushstrokes.sort(key=get_score, reverse=True)
+        self.stroke_layers.sort(key=get_score, reverse=True)
 
-
-    def crossover(self, brushstroke_1, brushstroke_2):
+    def crossover(self, strokelayer_1, strokelayer_2):
         # Queue marvin gaye- lets get it on
         pass
 
     def mutate(self, brushstroke):
         pass
+
+
+class StrokeLayer:
+
+    def __init__(self, bs):
+        self.score = 0
+        self.brush_strokes = bs
 
 
 class BrushStroke:
@@ -138,7 +152,6 @@ class BrushStroke:
         self.scale_factor = scale_factor
         self.brightness = brightness
         self.pos = pos
-        self.score = 0
 
 
 if __name__ == '__main__':
