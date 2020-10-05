@@ -55,6 +55,8 @@ def main():
     width = 500
     height = 500
     num_brushstrokes = 10
+    kill_rate = 0.5
+    mutation_rate = 0.05
     # load target image
     target = cv2.imread("./target.jpg", cv2.IMREAD_GRAYSCALE)
     target = cv2.resize(target, (width, height), interpolation=cv2.INTER_CUBIC)
@@ -68,12 +70,31 @@ def main():
 
     population = Population(10)
 
-    for i in range(population.population_size):
+    for i in range(population.size):
         sl = create_random_strokelayer(
             num_brushstrokes, width, height, brush_size)
         population.populate(sl)
 
     population.score_strokelayers(img, target, brush)
+
+    # Selection phase
+    # TODO: check if we should do Tournament or Roulette instead of Rank
+    population.rank(kill_rate)
+
+    # Add offspring
+    i = 0
+    while len(population.stroke_layers) < population.size:
+        offspring = population.crossover(
+            population.stroke_layers[i],
+            population.stroke_layers[i + 1]
+        )
+        # Check for mutation
+        rand = np.random.rand(1)[0]
+        if rand <= mutation_rate:
+            offspring.mutate(mutation_rate)
+
+        population.populate(offspring)
+        i += 1
 
     # # Draw brushstrokes
     # for x in range(100):
@@ -106,9 +127,9 @@ def create_random_strokelayer(num_brushstrokes, width, height, brush_size):
 
 class Population:
 
-    def __init__(self, population_size):
+    def __init__(self, size):
         self.stroke_layers = []
-        self.population_size = population_size
+        self.size = size
 
     def populate(self, ls):
         self.stroke_layers.append(ls)
@@ -143,8 +164,16 @@ class Population:
 
         return StrokeLayer(brush_stroke_offspring)
 
-    def mutate(self, brushstroke):
-        pass
+    # Selection methods
+    def rank(self, kill_rate):
+        pop_size = len(self.stroke_layers)
+
+        # Check that the kill_rate will leave at least 2 pop
+        new_pop_size = int(pop_size * kill_rate)
+        if new_pop_size <= 2:
+            raise Exception("Kill Ratio is too agressive")
+
+        self.stroke_layers = self.stroke_layers[:new_pop_size]
 
 
 class StrokeLayer:
@@ -152,6 +181,9 @@ class StrokeLayer:
     def __init__(self, bs):
         self.score = 0
         self.brush_strokes = bs
+
+    def mutate(self, stroke_layer):
+        pass
 
 
 class BrushStroke:
