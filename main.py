@@ -132,8 +132,16 @@ class Population:
         self.stroke_layers.sort(key=get_score, reverse=True)
 
     def crossover(self, strokelayer_1, strokelayer_2):
-        # Queue marvin gaye- lets get it on
-        pass
+        # Combine bushstrokes randomly and make children with 5 strokes each
+        brush_strokes_1 = strokelayer_1.brush_strokes
+        brush_strokes_2 = strokelayer_2.brush_strokes
+
+        brush_stroke_offspring = [
+            brush_strokes_1[1:int(len(brush_strokes_1) / 2)],
+            brush_strokes_2[int(len(brush_strokes_2) / 2):-1]
+        ]
+
+        return StrokeLayer(brush_stroke_offspring)
 
     def mutate(self, brushstroke):
         pass
