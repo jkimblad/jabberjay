@@ -15,13 +15,13 @@ def read_brush(size):
     return img
 
 
-def show_painting(img):
+def show_painting(window_name, img):
     # Normalize from 0-255 to 0-1 which openCV likes =)
     img = img / 255.0
-    cv2.imshow('image', img)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    cv2.imshow(window_name, img)
     cv2.waitKey(1)
+
+    # cv2.destroyAllWindows()
 
 
 def paint(img, brush_img, brushstroke):
@@ -38,14 +38,14 @@ def paint(img, brush_img, brushstroke):
 
 
 def main():
-    np.random.seed(50)  # Set seed for easier debugging
+    np.random.seed(500)  # Set seed for easier debugging
     width = 500
     height = 500
     num_brushstrokes = 10
     kill_rate = 0.5
-    mutation_rate = 0.05
+    mutation_rate = 0.2
     # load target image
-    target = cv2.imread("./target.jpg", cv2.IMREAD_GRAYSCALE)
+    target = cv2.imread("./target1.png", cv2.IMREAD_GRAYSCALE)
     target = cv2.resize(target, (width, height), interpolation=cv2.INTER_CUBIC)
     # create painting
     canvas = np.zeros([width, height])
@@ -65,20 +65,34 @@ def main():
 
     # Evolve unto next generation
     next_picture = False
-    while True:
-        for i in range(100):
+    # while True:
+    num_generations = 1000
+    num_evolves = 20
+    window_name = 'Image de Lena'
+    cv2.namedWindow(window_name)
+    cv2.resizeWindow(window_name, 500, 500)
+    cv2.namedWindow("target")
+    cv2.resizeWindow("target", 500, 500)
+    show_painting("target", target)
+    for i in range(num_generations):
+        for j in range(num_evolves):
             population.evolve(
                 mutation_rate,
                 kill_rate,
                 canvas,
                 brush_img,
                 target)
-            # Chose top-scoring stroke_layer and add it to canvas
-            for stroke in population.stroke_layers[0].brush_strokes:
-                canvas = paint(canvas, brush_img, stroke)
+        # Chose top-scoring stroke_layer and add it to canvas
+        for stroke in population.stroke_layers[0].brush_strokes:
+            canvas = paint(canvas, brush_img, stroke)
 
-        show_painting(canvas)
-        print(population.stroke_layers[0].score)
+        if i % 100 == 0:
+            print(population.stroke_layers[0].score)
+            show_painting(window_name, canvas)
+            print("continuing...")
+
+
+    
 
     # # Draw brushstrokes
     # for x in range(100):
