@@ -196,8 +196,8 @@ class Population:
         brush_strokes_1 = strokelayer_1.brush_strokes
         brush_strokes_2 = strokelayer_2.brush_strokes
 
-        brush_stroke_offspring = brush_strokes_1[1:int(
-            len(brush_strokes_1) / 2)] + brush_strokes_2[int(len(brush_strokes_2) / 2):-1]
+        brush_stroke_offspring = brush_strokes_1[:int(
+            len(brush_strokes_1) / 2)] + brush_strokes_2[int(len(brush_strokes_2) / 2 - 1):-1]
 
         return StrokeLayer(brush_stroke_offspring)
 
