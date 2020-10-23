@@ -28,8 +28,22 @@ def paint(img, brush_img, brushstroke):
     pos = brushstroke.pos
     brush_img = np.multiply(brush_img, brushstroke.brightness)
 
+    # special case, brush pos outside of canvas
+    # brush_img = brush_img[0:brush_img.shape[0]]
+    
+    if pos[0] < 0:
+        brush_img = brush_img[0:brush_img.shape[0] + pos[0], :]
+        pos[0] = 0
+    if pos[1] < 0:
+        brush_img = brush_img[:, 0:brush_img.shape[1] + pos[1]]
+        pos[1] = 0
+
     roi = img[pos[0]:pos[0] + brush_img.shape[0],
               pos[1]:pos[1] + brush_img.shape[1]]
+
+    # Crop brush_img to the same size of roi, this occurs if pos is outside of canvas
+    brush_img = brush_img[:roi.shape[0], :roi.shape[1]]
+
     roi = cv2.add(roi, brush_img)
     roi = np.clip(roi, 0.0, 255.0)
     img[pos[0]:pos[0] + brush_img.shape[0], pos[1]        :pos[1] + brush_img.shape[1]] = roi.astype(np.uint8)
