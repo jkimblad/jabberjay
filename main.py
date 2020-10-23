@@ -130,11 +130,12 @@ def main():
 def create_random_strokelayer(num_brushstrokes, width, height, brush_size):
     brushstrokes = []
     for i in range(num_brushstrokes):
-        brightness = np.random.rand(1)[0]
-        pos = (
+        # brightness = np.random.rand(1)[0]
+        brightness = 1.0
+        pos = [
             np.random.randint(width - brush_size, size=1)[0],
             np.random.randint(height - brush_size, size=1)[0]
-        )
+        ]
         brushstrokes.append(BrushStroke(-1, brightness, pos))
     return StrokeLayer(brushstrokes)
 
