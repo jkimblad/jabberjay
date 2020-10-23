@@ -25,9 +25,10 @@ def show_painting(window_name, img):
     # cv2.destroyAllWindows()
 
 
-def paint(img, brush_img, brushstroke):
+def paint(canvas, brush_img, brushstroke):
     pos = brushstroke.pos
-    brush_img = np.multiply(brush_img, brushstroke.brightness)
+
+    # brush_img = np.multiply(brush_img, brushstroke.color)
 
     # special case, brush pos outside of canvas
     # brush_img = brush_img[0:brush_img.shape[0]]
@@ -39,17 +40,24 @@ def paint(img, brush_img, brushstroke):
         brush_img = brush_img[:, 0:brush_img.shape[1] + pos[1]]
         pos[1] = 0
 
-    roi = img[pos[0]:pos[0] + brush_img.shape[0],
+    roi = canvas[pos[0]:pos[0] + brush_img.shape[0],
               pos[1]:pos[1] + brush_img.shape[1]]
 
     # Crop brush_img to the same size of roi, this occurs if pos is outside of canvas
     brush_img = brush_img[:roi.shape[0], :roi.shape[1]]
 
-    roi = cv2.add(roi, brush_img)
-    roi = np.clip(roi, 0.0, 255.0)
-    img[pos[0]:pos[0] + brush_img.shape[0], pos[1]        :pos[1] + brush_img.shape[1]] = roi.astype(np.uint8)
+    myClr = np.copy(brush_img)
+    myClr[:, :] = brushstroke.color * 255
+    alpha = np.ceil(brush_img / 255.0)
+    brush_img = cv2.multiply(alpha, myClr.astype(float))
+    roi = cv2.multiply((1 - alpha), roi)
 
-    return img
+    roi = cv2.add(roi, brush_img)
+    # roi = brush_img
+    roi = np.clip(roi, 0.0, 255.0)
+    canvas[pos[0]:pos[0] + brush_img.shape[0], pos[1] :pos[1] + brush_img.shape[1]] = roi.astype(np.uint8)
+
+    return canvas
 
 
 def main():
@@ -130,13 +138,13 @@ def main():
 def create_random_strokelayer(num_brushstrokes, width, height, brush_size):
     brushstrokes = []
     for i in range(num_brushstrokes):
-        # brightness = np.random.rand(1)[0]
-        brightness = 1.0
+        color = np.random.rand(1)[0]
+        # color = 1.0
         pos = [
             np.random.randint(width - brush_size, size=1)[0],
             np.random.randint(height - brush_size, size=1)[0]
         ]
-        brushstrokes.append(BrushStroke(-1, brightness, pos))
+        brushstrokes.append(BrushStroke(-1, color, pos))
     return StrokeLayer(brushstrokes)
 
 
@@ -221,6 +229,10 @@ class StrokeLayer:
 
     def mutate(self, screen_size):
         for brush_stroke in self.brush_strokes:
+            # Random color
+            brush_stroke.color = np.random.rand()
+
+
             # random direction, up left down right
             x_dir = random.choice([-1, 1])
             y_dir = random.choice([-1, 1])
@@ -236,9 +248,9 @@ class StrokeLayer:
 
 class BrushStroke:
 
-    def __init__(self, scale_factor, brightness, pos):
+    def __init__(self, scale_factor, color, pos):
         self.scale_factor = scale_factor
-        self.brightness = brightness
+        self.color = color
         self.pos = pos
 
 
