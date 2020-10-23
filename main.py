@@ -219,8 +219,19 @@ class StrokeLayer:
         self.score = 0
         self.brush_strokes = bs
 
-    def mutate(self, stroke_layer):
-        pass
+    def mutate(self, screen_size):
+        for brush_stroke in self.brush_strokes:
+            # random direction, up left down right
+            x_dir = random.choice([-1, 1])
+            y_dir = random.choice([-1, 1])
+            # random amount of change, 0-10% of screen size?
+            x_factor = np.random.rand(10)[0]
+            y_factor = np.random.rand(10)[0]
+
+            brush_stroke.pos = [
+                int(brush_stroke.pos[0] + x_dir * screen_size[0] * (x_factor / 100)), 
+                int(brush_stroke.pos[1] + y_dir * screen_size[1] * (y_factor / 100))
+            ]
 
 
 class BrushStroke:
