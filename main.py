@@ -57,7 +57,7 @@ def main():
     height = 500
     num_brushstrokes = 10
     kill_rate = 0.5
-    mutation_rate = 0.2
+    mutation_rate = 0.05
     # load target image
     target = cv2.imread("./target1.png", cv2.IMREAD_GRAYSCALE)
     target = cv2.resize(target, (width, height), interpolation=cv2.INTER_CUBIC)
