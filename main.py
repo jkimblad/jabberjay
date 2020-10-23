@@ -2,6 +2,7 @@
 
 import cv2
 import numpy as np
+import random
 
 
 def read_brush(size):
@@ -100,10 +101,9 @@ def main():
         for stroke in population.stroke_layers[0].brush_strokes:
             canvas = paint(canvas, brush_img, stroke)
 
-        if i % 100 == 0:
+        if i % 10 == 0:
             print(population.stroke_layers[0].score)
             show_painting(window_name, canvas)
-            print("continuing...")
 
 
     
@@ -165,7 +165,7 @@ class Population:
             # Check for mutation
             rand = np.random.rand(1)[0]
             if rand <= mutation_rate:
-                offspring.mutate(mutation_rate)
+                offspring.mutate(canvas.shape)
 
             self.populate(offspring)
             i += 1
