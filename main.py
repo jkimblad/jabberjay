@@ -237,12 +237,12 @@ class StrokeLayer:
             x_dir = random.choice([-1, 1])
             y_dir = random.choice([-1, 1])
             # random amount of change, 0-10% of screen size?
-            x_factor = np.random.rand(10)[0]
-            y_factor = np.random.rand(10)[0]
+            x_factor = np.random.rand(100)[0]
+            y_factor = np.random.rand(100)[0]
 
             brush_stroke.pos = [
-                int(brush_stroke.pos[0] + x_dir * screen_size[0] * (x_factor / 100)), 
-                int(brush_stroke.pos[1] + y_dir * screen_size[1] * (y_factor / 100))
+                int(np.clip(np.round(brush_stroke.pos[0] + x_dir * screen_size[0] * (x_factor / 100)), 0.0, 255.0)), 
+                int(np.clip(np.round(brush_stroke.pos[1] + y_dir * screen_size[1] * (y_factor / 100)), 0.0, 255.0))
             ]
 
 
