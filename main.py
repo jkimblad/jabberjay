@@ -239,9 +239,19 @@ class StrokeLayer:
             x_factor = np.random.rand(100)[0]
             y_factor = np.random.rand(100)[0]
 
+            # Calculate new x pos randomly
+            new_x_pos = np.round(brush_stroke.pos[0] + x_dir * screen_size[0] * (x_factor / 100))
+            # Clip to ensure it's within screen dimensions
+            new_x_pos = np.clip(new_x_pos, 0, screen_size[0])
+
+            # Calculate new y pos randomly
+            new_y_pos = np.round(brush_stroke.pos[1] + y_dir * screen_size[1] * (y_factor / 100))
+            # Clip to ensure it's within screen dimensions
+            new_y_pos = np.clip(new_y_pos, 0, screen_size[1])
+
             brush_stroke.pos = [
-                int(np.round(brush_stroke.pos[0] + x_dir * screen_size[0] * (x_factor / 100))), 
-                int(np.round(brush_stroke.pos[1] + y_dir * screen_size[1] * (y_factor / 100)))
+                int(new_x_pos), 
+                int(new_y_pos),
             ]
 
 
