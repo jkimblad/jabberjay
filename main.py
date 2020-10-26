@@ -184,7 +184,7 @@ class Population:
         pop_size = len(self.stroke_layers)
 
         # Check that the kill_rate will leave at least 2 pop
-        new_pop_size = int(pop_size * kill_rate)
+        new_pop_size = int(pop_size * (1 - kill_rate))
         if new_pop_size <= 2:
             raise Exception("Kill Ratio is too agressive")
 
