@@ -114,7 +114,7 @@ def create_random_strokelayer(num_brushstrokes, width, height, brush_size):
             np.random.randint(width - brush_size, size=1)[0],
             np.random.randint(height - brush_size, size=1)[0]
         ]
-        brushstrokes.append(BrushStroke(-1, color, pos))
+        brushstrokes.append(BrushStroke(-1, color, pos, brush_size))
     return StrokeLayer(brushstrokes)
 
 
@@ -202,36 +202,42 @@ class StrokeLayer:
             # Random color
             brush_stroke.color = np.random.rand()
 
-            # random direction, up left down right
-            x_dir = random.choice([-1, 1])
-            y_dir = random.choice([-1, 1])
-            # random amount of change, 0-10% of screen size?
-            x_factor = np.random.rand(100)[0]
-            y_factor = np.random.rand(100)[0]
-
-            # Calculate new x pos randomly
-            new_x_pos = np.round(brush_stroke.pos[0] + x_dir * screen_size[0] * (x_factor / 100))
-            # Clip to ensure it's within screen dimensions
-            new_x_pos = np.clip(new_x_pos, 0, screen_size[0])
-
-            # Calculate new y pos randomly
-            new_y_pos = np.round(brush_stroke.pos[1] + y_dir * screen_size[1] * (y_factor / 100))
-            # Clip to ensure it's within screen dimensions
-            new_y_pos = np.clip(new_y_pos, 0, screen_size[1])
+            new_x_pos, new_y_pos = self.__get_new_pos(brush_stroke, screen_size)
 
             brush_stroke.pos = [
                 int(new_x_pos), 
                 int(new_y_pos),
             ]
 
+    def __get_new_pos(self, brush_stroke, screen_size):
+        # random direction, up left down right
+        x_dir = random.choice([-1, 1])
+        y_dir = random.choice([-1, 1])
+        # random amount of change, 0-10% of screen size?
+        x_factor = np.random.rand(100)[0]
+        y_factor = np.random.rand(100)[0]
+        # Calculate new x pos randomly
+        new_x_pos = np.round(brush_stroke.pos[0] + x_dir * screen_size[0] * (x_factor / 100))
+        # Clip to ensure it's within screen dimensions
+        new_x_pos = np.clip(new_x_pos, 1 - brush_stroke.size, screen_size[0] - 1)
+
+        # Calculate new y pos randomly
+        new_y_pos = np.round(brush_stroke.pos[1] + y_dir * screen_size[1] * (y_factor / 100))
+        # Clip to ensure it's within screen dimensions
+        new_y_pos = np.clip(new_y_pos, 1 - brush_stroke.size, screen_size[1] - 1)
+
+        return new_x_pos, new_y_pos
+
+
 
 
 class BrushStroke:
 
-    def __init__(self, scale_factor, color, pos):
+    def __init__(self, scale_factor, color, pos, size):
         self.scale_factor = scale_factor
         self.color = color
         self.pos = pos
+        self.size = size
 
 
 if __name__ == '__main__':
