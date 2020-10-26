@@ -232,7 +232,6 @@ class StrokeLayer:
             # Random color
             brush_stroke.color = np.random.rand()
 
-
             # random direction, up left down right
             x_dir = random.choice([-1, 1])
             y_dir = random.choice([-1, 1])
@@ -241,9 +240,10 @@ class StrokeLayer:
             y_factor = np.random.rand(100)[0]
 
             brush_stroke.pos = [
-                int(np.clip(np.round(brush_stroke.pos[0] + x_dir * screen_size[0] * (x_factor / 100)), 0.0, 255.0)), 
-                int(np.clip(np.round(brush_stroke.pos[1] + y_dir * screen_size[1] * (y_factor / 100)), 0.0, 255.0))
+                int(np.round(brush_stroke.pos[0] + x_dir * screen_size[0] * (x_factor / 100))), 
+                int(np.round(brush_stroke.pos[1] + y_dir * screen_size[1] * (y_factor / 100)))
             ]
+
 
 
 class BrushStroke:
