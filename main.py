@@ -7,12 +7,9 @@ import random
 
 def read_brush(size):
     img = cv2.imread("./brushes/1.jpg", cv2.IMREAD_GRAYSCALE)
-
-    # img = cv2.imread("./brushes/4-removebg-preview.png")
     dim = (size, size)
     img = cv2.resize(img, dim, interpolation=cv2.INTER_CUBIC)
 
-    # img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     return img
 
 
@@ -22,17 +19,10 @@ def show_painting(window_name, img):
     cv2.imshow(window_name, img)
     cv2.waitKey(1)
 
-    # cv2.destroyAllWindows()
-
 
 def paint(canvas, brush_img, brushstroke):
     pos = brushstroke.pos
 
-    # brush_img = np.multiply(brush_img, brushstroke.color)
-
-    # special case, brush pos outside of canvas
-    # brush_img = brush_img[0:brush_img.shape[0]]
-    
     if pos[0] < 0:
         brush_img = brush_img[0:brush_img.shape[0] + pos[0], :]
         pos[0] = 0
@@ -53,8 +43,8 @@ def paint(canvas, brush_img, brushstroke):
     roi = cv2.multiply((1 - alpha), roi)
 
     roi = cv2.add(roi, brush_img)
-    # roi = brush_img
     roi = np.clip(roi, 0.0, 255.0)
+
     canvas[pos[0]:pos[0] + brush_img.shape[0], pos[1] :pos[1] + brush_img.shape[1]] = roi.astype(np.uint8)
 
     return canvas
@@ -113,28 +103,8 @@ def main():
             print(population.stroke_layers[0].score)
             show_painting(window_name, canvas)
 
-
-    
-
-    # # Draw brushstrokes
-    # for x in range(100):
-
-    #     # get random pos
-    #     pos = (
-    #         np.random.randint(width - brush_size, size=1)[0],
-    #         np.random.randint(height - brush_size, size=1)[0]
-    #     )
-
-    #     # print(pos)
-    #     # stroke brush on painting
-    #     img = paint(img, brush, pos, np.random.rand(1)[0])
-
-    # # show painting
-    # show_painting(img)
-
+ 
 # TODO: refactor into population
-
-
 def create_random_strokelayer(num_brushstrokes, width, height, brush_size):
     brushstrokes = []
     for i in range(num_brushstrokes):
