@@ -197,6 +197,14 @@ class StrokeLayer:
         self.score = 0
         self.brush_strokes = bs
 
+    def __str__(self):
+        temp = "Strokelayer ================ \n"
+        temp += "score: " + str(self.score) + "\n"
+        for brush_stroke in self.brush_strokes:
+            temp += brush_stroke.__str__()
+
+        return temp
+
     def mutate(self, screen_size):
         for brush_stroke in self.brush_strokes:
             # Random color
@@ -239,6 +247,14 @@ class BrushStroke:
         self.pos = pos
         self.size = size
 
+    def __str__(self):
+        temp = "scale: " + str(self.scale_factor) + "\n"
+        temp += "color: " + str(self.color) + "\n"
+        temp += "pos_x: " + str(self.pos[0]) + "\n"
+        temp += "pos_y: " + str(self.pos[1]) + "\n"
+        temp += "size: " + str(self.size) + "\n\n"
+
+        return temp
 
 if __name__ == '__main__':
     main()
