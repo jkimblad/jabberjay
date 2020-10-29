@@ -123,6 +123,8 @@ def main():
                 show_painting("debug", debug_canvas)
             show_painting(window_name, canvas)
 
+    # Save image
+    cv2.imwrite("./painted.png", canvas) 
  
 # TODO: refactor into population
 def create_random_strokelayer(num_brushstrokes, width, height, brush_size):
