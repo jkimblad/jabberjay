@@ -55,11 +55,11 @@ def main():
     np.random.seed(500)  # Set seed for easier debugging
     width = 500
     height = 500
-    num_brushstrokes = 10
+    num_brushstrokes = 4
     kill_rate = 0.5
-    mutation_rate = 0.01
+    mutation_rate = 0.1
     # load target image
-    target = cv2.imread("./target2.png", cv2.IMREAD_GRAYSCALE)
+    target = cv2.imread("./mona.jpg", cv2.IMREAD_GRAYSCALE)
     target = cv2.resize(target, (width, height), interpolation=cv2.INTER_CUBIC)
     # create painting
     canvas = np.zeros([width, height])
@@ -69,7 +69,7 @@ def main():
     brush_size = 50
     brush_img = read_brush(brush_size)
 
-    population = Population(10)
+    population = Population(20)
 
     # Populate population
     # TODO: put into population __init__
@@ -81,8 +81,8 @@ def main():
     # Evolve unto next generation
     next_picture = False
     # while True:
-    num_generations = 1000
-    num_evolves = 1
+    num_generations = 10000
+    num_evolves = 3
     window_name = 'Image de Lena'
     cv2.namedWindow(window_name)
     cv2.resizeWindow(window_name, 500, 500)
