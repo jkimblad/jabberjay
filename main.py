@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import random
 
+DEBUG = 1
 
 def read_brush(size):
     img = cv2.imread("./brushes/1.jpg", cv2.IMREAD_GRAYSCALE)
@@ -56,12 +57,13 @@ def main():
     height = 500
     num_brushstrokes = 10
     kill_rate = 0.5
-    mutation_rate = 0.05
+    mutation_rate = 0.01
     # load target image
-    target = cv2.imread("./target1.png", cv2.IMREAD_GRAYSCALE)
+    target = cv2.imread("./target2.png", cv2.IMREAD_GRAYSCALE)
     target = cv2.resize(target, (width, height), interpolation=cv2.INTER_CUBIC)
     # create painting
     canvas = np.zeros([width, height])
+
 
     # load brush
     brush_size = 50
@@ -80,12 +82,16 @@ def main():
     next_picture = False
     # while True:
     num_generations = 1000
-    num_evolves = 20
+    num_evolves = 1
     window_name = 'Image de Lena'
     cv2.namedWindow(window_name)
     cv2.resizeWindow(window_name, 500, 500)
     cv2.namedWindow("target")
     cv2.resizeWindow("target", 500, 500)
+    if (DEBUG):
+        cv2.namedWindow("debug")
+        cv2.resizeWindow("debug", 500, 500)
+
     show_painting("target", target)
     for i in range(num_generations):
         for j in range(num_evolves):
@@ -99,8 +105,19 @@ def main():
         for stroke in population.stroke_layers[0].brush_strokes:
             canvas = paint(canvas, brush_img, stroke)
 
-        if i % 10 == 0:
-            print(population.stroke_layers[0].score)
+        debug_canvas = np.array([0])
+        if (DEBUG):
+            debug_canvas = np.zeros([width, height])
+            for stroke_layer in population.stroke_layers:
+                for stroke in stroke_layer.brush_strokes:
+                    debug_canvas = paint(debug_canvas, brush_img, stroke)
+
+        if i % 1 == 0:
+            if(DEBUG):
+                print("score0: " + str(population.stroke_layers[0].score))
+                print("score1: " + str(population.stroke_layers[1].score))
+                print("score2: " + str(population.stroke_layers[3].score))
+                show_painting("debug", debug_canvas)
             show_painting(window_name, canvas)
 
  
@@ -114,7 +131,7 @@ def create_random_strokelayer(num_brushstrokes, width, height, brush_size):
             np.random.randint(width - brush_size, size=1)[0],
             np.random.randint(height - brush_size, size=1)[0]
         ]
-        brushstrokes.append(BrushStroke(-1, color, pos, brush_size))
+        brushstrokes.append(BrushStroke(color, pos, brush_size))
     return StrokeLayer(brushstrokes)
 
 
@@ -176,10 +193,12 @@ class Population:
 
         brush_stroke_offspring = []
         for i in range(len(brush_strokes_1)):
-            if i % 2:
-                brush_stroke_offspring.append(brush_strokes_1[i])
-            else:
-                brush_stroke_offspring.append(brush_strokes_2[i])
+            # Take average all from first and second
+            new_color = (brush_strokes_1[i].color + brush_strokes_2[i].color) / 2
+            new_x_pos = (brush_strokes_1[i].pos[0] + brush_strokes_2[i].pos[0]) / 2
+            new_y_pos = (brush_strokes_1[i].pos[1] + brush_strokes_2[i].pos[1]) / 2
+            new_size = (brush_strokes_1[i].size + brush_strokes_2[i].size) / 2
+            brush_stroke_offspring.append(BrushStroke(new_color, [int(round(new_x_pos)), int(round(new_y_pos))], new_size))
 
 
         return StrokeLayer(brush_stroke_offspring)
@@ -205,8 +224,8 @@ class StrokeLayer:
     def __str__(self):
         temp = "Strokelayer ================ \n"
         temp += "score: " + str(self.score) + "\n"
-        for brush_stroke in self.brush_strokes:
-            temp += brush_stroke.__str__()
+        # for brush_stroke in self.brush_strokes:
+            # temp += brush_stroke.__str__()
 
         return temp
 
@@ -246,15 +265,13 @@ class StrokeLayer:
 
 class BrushStroke:
 
-    def __init__(self, scale_factor, color, pos, size):
-        self.scale_factor = scale_factor
+    def __init__(self, color, pos, size):
         self.color = color
         self.pos = pos
         self.size = size
 
     def __str__(self):
-        temp = "scale: " + str(self.scale_factor) + "\n"
-        temp += "color: " + str(self.color) + "\n"
+        temp = "color: " + str(self.color) + "\n"
         temp += "pos_x: " + str(self.pos[0]) + "\n"
         temp += "pos_y: " + str(self.pos[1]) + "\n"
         temp += "size: " + str(self.size) + "\n\n"
