@@ -86,11 +86,14 @@ def main():
     window_name = 'Image de Lena'
     cv2.namedWindow(window_name)
     cv2.resizeWindow(window_name, 500, 500)
+    cv2.moveWindow(window_name, 600, 100)
     cv2.namedWindow("target")
     cv2.resizeWindow("target", 500, 500)
+    cv2.moveWindow("target", 100, 100)
     if (DEBUG):
         cv2.namedWindow("debug")
         cv2.resizeWindow("debug", 500, 500)
+        cv2.moveWindow("debug", 1100, 100)
 
     show_painting("target", target)
     for i in range(num_generations):
