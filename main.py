@@ -117,9 +117,9 @@ def main():
 
         if i % 1 == 0:
             if(DEBUG):
-                print("score0: " + str(population.stroke_layers[0].score))
-                print("score1: " + str(population.stroke_layers[1].score))
-                print("score2: " + str(population.stroke_layers[3].score))
+                print("0:", population.stroke_layers[0])
+                print("1:", population.stroke_layers[1])
+                print("2:", population.stroke_layers[2])
                 show_painting("debug", debug_canvas)
             show_painting(window_name, canvas)
 
@@ -175,6 +175,10 @@ class Population:
 
     def __score_strokelayers(self, canvas, target, brush_img):
         max_score = 255 * target.shape[0] * target.shape[1]
+        diff = np.subtract(target, canvas)
+        diff = np.abs(diff)
+        diff = np.sum(diff)
+        canvas_score = max_score - diff
         for stroke_layer in self.stroke_layers:
             tmp_cavnas = np.copy(canvas)
             # apply stroke_layer
@@ -185,6 +189,7 @@ class Population:
             diff = np.abs(diff)
             diff = np.sum(diff)
             stroke_layer.score = max_score - diff
+            stroke_layer.dscore = stroke_layer.score - canvas_score
 
         def get_score(ls):
             return ls.score
@@ -223,12 +228,14 @@ class Population:
 class StrokeLayer:
 
     def __init__(self, bs):
+        self.indx = np.random.randint(999, size=1)[0]
+
         self.score = 0
+        self.dscore = 0
         self.brush_strokes = bs
 
     def __str__(self):
-        temp = "Strokelayer ================ \n"
-        temp += "score: " + str(self.score) + "\n"
+        temp = "SL "+str(self.indx)+" score: " + str(self.score) + "dscore: " + str(self.dscore) + "\n"
         # for brush_stroke in self.brush_strokes:
             # temp += brush_stroke.__str__()
 
