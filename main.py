@@ -63,20 +63,12 @@ def main():
     target = cv2.resize(target, (width, height), interpolation=cv2.INTER_CUBIC)
     # create painting
     canvas = np.zeros([width, height])
-
-
     # load brush
-    brush_size = 50
-    brush_img = read_brush(brush_size)
+    brush_max_size = 50
+    brush_img = read_brush(brush_max_size)
 
-    population = Population(20)
-
-    # Populate population
-    # TODO: put into population __init__
-    for i in range(population.size):
-        sl = create_random_strokelayer(
-            num_brushstrokes, width, height, brush_size)
-        population.populate(sl)
+    # Create and populate population
+    population = Population(20, num_brushstrokes, width, height, brush_max_size)
 
     # Evolve unto next generation
     next_picture = False
@@ -109,6 +101,7 @@ def main():
             canvas = paint(canvas, brush_img, stroke)
 
         debug_canvas = np.array([0])
+        # Draw each StrokeLayer in the population in a new window after num_generations
         if (DEBUG):
             debug_canvas = np.zeros([width, height])
             for stroke_layer in population.stroke_layers:
@@ -121,7 +114,8 @@ def main():
                 print("1:", population.stroke_layers[1])
                 print("2:", population.stroke_layers[2])
                 show_painting("debug", debug_canvas)
-            show_painting(window_name, canvas)
+
+        show_painting(window_name, canvas)
 
     # Save image
     cv2.imwrite("./painted.png", canvas) 
@@ -142,9 +136,15 @@ def create_random_strokelayer(num_brushstrokes, width, height, brush_size):
 
 class Population:
 
-    def __init__(self, size):
+    def __init__(self, size, num_brushstrokes, width, height, brush_max_size):
         self.stroke_layers = []
         self.size = size
+
+        # Populate the population
+        for i in range(size):
+            sl = create_random_strokelayer(
+                num_brushstrokes, width, height, brush_max_size)
+            self.__populate(sl)
 
     # Evolve into next generation
     # TODO: keep brush_img (and maybe target) out of population
@@ -167,10 +167,10 @@ class Population:
             if rand <= mutation_rate:
                 offspring.mutate(canvas.shape)
 
-            self.populate(offspring)
+            self.__populate(offspring)
             i += 1
 
-    def populate(self, ls):
+    def __populate(self, ls):
         self.stroke_layers.append(ls)
 
     def __score_strokelayers(self, canvas, target, brush_img):
@@ -235,7 +235,7 @@ class StrokeLayer:
         self.brush_strokes = bs
 
     def __str__(self):
-        temp = "SL "+str(self.indx)+" score: " + str(self.score) + "dscore: " + str(self.dscore) + "\n"
+        temp = "SL "+str(self.indx)+" score: " + str(self.score) + " dscore: " + str(self.dscore) + "\n"
         # for brush_stroke in self.brush_strokes:
             # temp += brush_stroke.__str__()
 
