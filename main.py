@@ -4,6 +4,10 @@ import cv2
 import numpy as np
 import random
 
+from population import Population
+# from brush_stroke import BrushStroke
+# from stroke_layer import StrokeLayer
+
 DEBUG = 1
 
 def read_brush(size):
@@ -13,13 +17,11 @@ def read_brush(size):
 
     return img
 
-
 def show_painting(window_name, img):
     # Normalize from 0-255 to 0-1 which openCV likes =)
     img = img / 255.0
     cv2.imshow(window_name, img)
     cv2.waitKey(1)
-
 
 def paint(canvas, brush_img, brushstroke):
     pos = brushstroke.pos
@@ -49,7 +51,6 @@ def paint(canvas, brush_img, brushstroke):
     canvas[pos[0]:pos[0] + brush_img.shape[0], pos[1] :pos[1] + brush_img.shape[1]] = roi.astype(np.uint8)
 
     return canvas
-
 
 def main():
     np.random.seed(500)  # Set seed for easier debugging
@@ -95,7 +96,8 @@ def main():
                 kill_rate,
                 canvas,
                 brush_img,
-                target)
+                target,
+                paint)
         # Chose top-scoring stroke_layer and add it to canvas
         for stroke in population.stroke_layers[0].brush_strokes:
             canvas = paint(canvas, brush_img, stroke)
@@ -118,180 +120,7 @@ def main():
         show_painting(window_name, canvas)
 
     # Save image
-    cv2.imwrite("./painted.png", canvas) 
- 
-# TODO: refactor into population
-def create_random_strokelayer(num_brushstrokes, width, height, brush_size):
-    brushstrokes = []
-    for i in range(num_brushstrokes):
-        color = np.random.rand(1)[0]
-        # color = 1.0
-        pos = [
-            np.random.randint(width - brush_size, size=1)[0],
-            np.random.randint(height - brush_size, size=1)[0]
-        ]
-        brushstrokes.append(BrushStroke(color, pos, brush_size))
-    return StrokeLayer(brushstrokes)
-
-
-class Population:
-
-    def __init__(self, size, num_brushstrokes, width, height, brush_max_size):
-        self.stroke_layers = []
-        self.size = size
-
-        # Populate the population
-        for i in range(size):
-            sl = create_random_strokelayer(
-                num_brushstrokes, width, height, brush_max_size)
-            self.__populate(sl)
-
-    # Evolve into next generation
-    # TODO: keep brush_img (and maybe target) out of population
-    def evolve(self, mutation_rate, kill_rate, canvas, brush_img, target):
-        self.__score_strokelayers(canvas, target, brush_img)
-
-        # Selection phase
-        # TODO: check if we should do Tournament or Roulette instead of Rank
-        self.__rank(kill_rate)
-
-        # Add offspring
-        i = 0
-        while len(self.stroke_layers) < self.size:
-            offspring = self.__crossover(
-                self.stroke_layers[i],
-                self.stroke_layers[i + 1]
-            )
-            # Check for mutation
-            rand = np.random.rand(1)[0]
-            if rand <= mutation_rate:
-                offspring.mutate(canvas.shape)
-
-            self.__populate(offspring)
-            i += 1
-
-    def __populate(self, ls):
-        self.stroke_layers.append(ls)
-
-    def __score_strokelayers(self, canvas, target, brush_img):
-        max_score = 255 * target.shape[0] * target.shape[1]
-        diff = np.subtract(target, canvas)
-        diff = np.abs(diff)
-        diff = np.sum(diff)
-        canvas_score = max_score - diff
-        for stroke_layer in self.stroke_layers:
-            tmp_cavnas = np.copy(canvas)
-            # apply stroke_layer
-            for brush_stroke in stroke_layer.brush_strokes:
-                tmp_cavnas = paint(tmp_cavnas, brush_img, brush_stroke)
-            # check diff from target
-            diff = np.subtract(target, tmp_cavnas)
-            diff = np.abs(diff)
-            diff = np.sum(diff)
-            stroke_layer.score = max_score - diff
-            stroke_layer.dscore = stroke_layer.score - canvas_score
-
-        def get_score(ls):
-            return ls.score
-
-        self.stroke_layers.sort(key=get_score, reverse=True)
-
-    def __crossover(self, strokelayer_1, strokelayer_2):
-        # Combine bushstrokes randomly and make children with 5 strokes each
-        brush_strokes_1 = strokelayer_1.brush_strokes
-        brush_strokes_2 = strokelayer_2.brush_strokes
-
-        brush_stroke_offspring = []
-        for i in range(len(brush_strokes_1)):
-            # Take average all from first and second
-            new_color = (brush_strokes_1[i].color + brush_strokes_2[i].color) / 2
-            new_x_pos = (brush_strokes_1[i].pos[0] + brush_strokes_2[i].pos[0]) / 2
-            new_y_pos = (brush_strokes_1[i].pos[1] + brush_strokes_2[i].pos[1]) / 2
-            new_size = (brush_strokes_1[i].size + brush_strokes_2[i].size) / 2
-            brush_stroke_offspring.append(BrushStroke(new_color, [int(round(new_x_pos)), int(round(new_y_pos))], new_size))
-
-
-        return StrokeLayer(brush_stroke_offspring)
-
-    # Selection methods
-    def __rank(self, kill_rate):
-        pop_size = len(self.stroke_layers)
-
-        # Check that the kill_rate will leave at least 2 pop
-        new_pop_size = int(pop_size * (1 - kill_rate))
-        if new_pop_size <= 2:
-            raise Exception("Kill Ratio is too agressive")
-
-        self.stroke_layers = self.stroke_layers[:new_pop_size]
-
-
-class StrokeLayer:
-
-    def __init__(self, bs):
-        self.indx = np.random.randint(999, size=1)[0]
-
-        self.score = 0
-        self.dscore = 0
-        self.brush_strokes = bs
-
-    def __str__(self):
-        temp = "SL "+str(self.indx)+" score: " + str(self.score) + " dscore: " + str(self.dscore) + "\n"
-        # for brush_stroke in self.brush_strokes:
-            # temp += brush_stroke.__str__()
-
-        return temp
-
-    def mutate(self, screen_size):
-        for brush_stroke in self.brush_strokes:
-            # Random color
-            brush_stroke.color = np.random.rand()
-
-            new_x_pos, new_y_pos = self.__get_new_pos(brush_stroke, screen_size)
-
-            brush_stroke.pos = [
-                int(new_x_pos), 
-                int(new_y_pos),
-            ]
-
-    def __get_new_pos(self, brush_stroke, screen_size):
-        new_x_pos = np.random.randint(0, screen_size[0], size=1)[0]
-        new_y_pos = np.random.randint(0, screen_size[1], size=1)[0]
-
-        # # random direction, up left down right
-        # x_dir = random.choice([-1, 1])
-        # y_dir = random.choice([-1, 1])
-        # # random amount of change, 0-10% of screen size?
-        # x_factor = np.random.rand(100)[0]
-        # y_factor = np.random.rand(100)[0]
-        # # Calculate new x pos randomly
-        # new_x_pos = np.round(brush_stroke.pos[0] + x_dir * screen_size[0] * (x_factor / 100))
-        # # Clip to ensure it's within screen dimensions
-        new_x_pos = np.clip(new_x_pos, 1 - brush_stroke.size, screen_size[0] - 1)
-
-        # # Calculate new y pos randomly
-        # new_y_pos = np.round(brush_stroke.pos[1] + y_dir * screen_size[1] * (y_factor / 100))
-        # # Clip to ensure it's within screen dimensions
-        new_y_pos = np.clip(new_y_pos, 1 - brush_stroke.size, screen_size[1] - 1)
-
-        return new_x_pos, new_y_pos
-
-
-
-
-class BrushStroke:
-
-    def __init__(self, color, pos, size):
-        self.color = color
-        self.pos = pos
-        self.size = size
-
-    def __str__(self):
-        temp = "color: " + str(self.color) + "\n"
-        temp += "pos_x: " + str(self.pos[0]) + "\n"
-        temp += "pos_y: " + str(self.pos[1]) + "\n"
-        temp += "size: " + str(self.size) + "\n\n"
-
-        return temp
+    cv2.imwrite("./painted.png", canvas)
 
 if __name__ == '__main__':
     main()
