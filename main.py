@@ -12,8 +12,7 @@ DEBUG = 1
 
 def read_brush(size):
     img = cv2.imread("./brushes/1.jpg", cv2.IMREAD_GRAYSCALE)
-    dim = (size, size)
-    img = cv2.resize(img, dim, interpolation=cv2.INTER_CUBIC)
+    img = cv2.resize(img, size, interpolation=cv2.INTER_CUBIC)
 
     return img
 
@@ -65,7 +64,7 @@ def main():
     # create painting
     canvas = np.zeros([width, height])
     # load brush
-    brush_max_size = 50
+    brush_max_size = (80, 50)
     brush_img = read_brush(brush_max_size)
 
     # Create and populate population

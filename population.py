@@ -76,7 +76,8 @@ class Population:
             new_color = (brush_strokes_1[i].color + brush_strokes_2[i].color) / 2
             new_x_pos = (brush_strokes_1[i].pos[0] + brush_strokes_2[i].pos[0]) / 2
             new_y_pos = (brush_strokes_1[i].pos[1] + brush_strokes_2[i].pos[1]) / 2
-            new_size = (brush_strokes_1[i].size + brush_strokes_2[i].size) / 2
+            # new_size = (brush_strokes_1[i].size + brush_strokes_2[i].size) / 2
+            new_size = (brush_strokes_1[i].size[0], brush_strokes_1[i].size[1])
             brush_stroke_offspring.append(BrushStroke(new_color, [int(round(new_x_pos)), int(round(new_y_pos))], new_size))
 
 
@@ -101,8 +102,8 @@ def create_random_strokelayer(num_brushstrokes, width, height, brush_size):
         color = np.random.rand(1)[0]
         # color = 1.0
         pos = [
-            np.random.randint(width - brush_size, size=1)[0],
-            np.random.randint(height - brush_size, size=1)[0]
+            np.random.randint(width - brush_size[0], size=1)[0],
+            np.random.randint(height - brush_size[1], size=1)[0]
         ]
         brushstrokes.append(BrushStroke(color, pos, brush_size))
     return StrokeLayer(brushstrokes)
