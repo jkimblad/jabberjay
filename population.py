@@ -49,12 +49,12 @@ class Population:
         diff = np.sum(diff)
         canvas_score = max_score - diff
         for stroke_layer in self.stroke_layers:
-            tmp_cavnas = np.copy(canvas)
+            tmp_canvas = np.copy(canvas)
             # apply stroke_layer
             for brush_stroke in stroke_layer.brush_strokes:
-                tmp_cavnas = paint(tmp_cavnas, brush_img, brush_stroke)
+                tmp_canvas = paint(tmp_canvas, brush_img, brush_stroke)
             # check diff from target
-            diff = np.subtract(target, tmp_cavnas)
+            diff = np.subtract(target, tmp_canvas)
             diff = np.abs(diff)
             diff = np.sum(diff)
             stroke_layer.score = max_score - diff
