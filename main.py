@@ -25,6 +25,9 @@ def show_painting(window_name, img):
 def paint(canvas, brush_img, brushstroke):
     pos = brushstroke.pos
 
+    #resize the brush
+    brush_img = cv2.resize(brush_img, brushstroke.size, interpolation = cv2.INTER_CUBIC)
+
     if pos[0] < 0:
         brush_img = brush_img[0:brush_img.shape[0] + pos[0], :]
         pos[0] = 0
