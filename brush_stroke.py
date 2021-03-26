@@ -11,6 +11,7 @@ class BrushStroke:
         temp += "pos_x: " + str(self.pos[0]) + "\n"
         temp += "pos_y: " + str(self.pos[1]) + "\n"
         temp += "size_x: " + str(self.size[0]) + "\n"
-        temp += "size_y: " + str(self.size[1]) + "\n\n"
+        temp += "size_y: " + str(self.size[1]) + "\n"
+        temp += "rot: " + str(self.rot) + "\n\n"
 
         return temp
