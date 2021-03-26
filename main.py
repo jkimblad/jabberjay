@@ -59,7 +59,7 @@ def main():
     kill_rate = 0.5
     mutation_rate = 0.1
     # load target image
-    target = cv2.imread("./mona.jpg", cv2.IMREAD_GRAYSCALE)
+    target = cv2.imread("./photos/mona.jpg", cv2.IMREAD_GRAYSCALE)
     target = cv2.resize(target, (width, height), interpolation=cv2.INTER_CUBIC)
     # create painting
     canvas = np.zeros([width, height])
@@ -119,7 +119,7 @@ def main():
         show_painting(window_name, canvas)
 
     # Save image
-    cv2.imwrite("./painted.png", canvas)
+    cv2.imwrite("./photos/painted.png", canvas)
 
 if __name__ == '__main__':
     main()
