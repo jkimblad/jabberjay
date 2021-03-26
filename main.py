@@ -37,6 +37,10 @@ def paint(canvas, brush_img, brushstroke):
 
     # Crop brush_img to the same size of roi, this occurs if pos is outside of canvas
     brush_img = brush_img[:roi.shape[0], :roi.shape[1]]
+    # rotate, credit to anopara for this code. Not sure how it works exactly
+    rows, cols = brush_img.shape
+    M = cv2.getRotationMatrix2D( (cols/2, rows/2), brushstroke.rot, 1)
+    brush_img = cv2.warpAffine(brush_img, M, (cols, rows))
 
     myClr = np.copy(brush_img)
     myClr[:, :] = brushstroke.color * 255

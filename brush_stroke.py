@@ -1,9 +1,10 @@
 class BrushStroke:
 
-    def __init__(self, color, pos, size):
+    def __init__(self, color, pos, size, rot):
         self.color = color
         self.pos = pos
         self.size = size
+        self.rot = rot
 
     def __str__(self):
         temp = "color: " + str(self.color) + "\n"
