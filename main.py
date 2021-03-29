@@ -25,6 +25,9 @@ def show_painting(window_name, img):
 def paint(canvas, brush_img, brushstroke):
     pos = brushstroke.pos
 
+    #resize the brush
+    brush_img = cv2.resize(brush_img, brushstroke.size, interpolation = cv2.INTER_CUBIC)
+
     if pos[0] < 0:
         brush_img = brush_img[0:brush_img.shape[0] + pos[0], :]
         pos[0] = 0
@@ -37,6 +40,10 @@ def paint(canvas, brush_img, brushstroke):
 
     # Crop brush_img to the same size of roi, this occurs if pos is outside of canvas
     brush_img = brush_img[:roi.shape[0], :roi.shape[1]]
+    # rotate, credit to anopara for this code. Not sure how it works exactly
+    rows, cols = brush_img.shape
+    M = cv2.getRotationMatrix2D( (cols/2, rows/2), brushstroke.rot, 1)
+    brush_img = cv2.warpAffine(brush_img, M, (cols, rows))
 
     myClr = np.copy(brush_img)
     myClr[:, :] = brushstroke.color * 255
@@ -59,7 +66,7 @@ def main():
     kill_rate = 0.5
     mutation_rate = 0.1
     # load target image
-    target = cv2.imread("./mona.jpg", cv2.IMREAD_GRAYSCALE)
+    target = cv2.imread("./photos/mona.jpg", cv2.IMREAD_GRAYSCALE)
     target = cv2.resize(target, (width, height), interpolation=cv2.INTER_CUBIC)
     # create painting
     canvas = np.zeros([width, height])
@@ -119,7 +126,7 @@ def main():
         show_painting(window_name, canvas)
 
     # Save image
-    cv2.imwrite("./painted.png", canvas)
+    cv2.imwrite("./photos/painted.png", canvas)
 
 if __name__ == '__main__':
     main()

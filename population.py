@@ -1,6 +1,12 @@
 import numpy as np
-from brush_stroke import BrushStroke
+import sys
+from brush_stroke import BrushStroke, create_random_brushstroke
 from stroke_layer import StrokeLayer
+from enum import Enum
+
+class CrossOverMethods(Enum):
+    RANDOM = 1
+    AVERAGE = 2
 
 
 class Population:
@@ -8,6 +14,11 @@ class Population:
     def __init__(self, size, num_brushstrokes, width, height, brush_max_size):
         self.stroke_layers = []
         self.size = size
+        self.crossover_method = CrossOverMethods.RANDOM # TODO: pass this in parameter
+        # TODO pass this as parameters in evolve instead of storing in class.. maybe
+        self.width = width
+        self.height = height
+        self.brush_size = brush_max_size
 
         # Populate the population
         for i in range(size):
@@ -71,14 +82,23 @@ class Population:
         brush_strokes_2 = strokelayer_2.brush_strokes
 
         brush_stroke_offspring = []
-        for i in range(len(brush_strokes_1)):
-            # Take average all from first and second
-            new_color = (brush_strokes_1[i].color + brush_strokes_2[i].color) / 2
-            new_x_pos = (brush_strokes_1[i].pos[0] + brush_strokes_2[i].pos[0]) / 2
-            new_y_pos = (brush_strokes_1[i].pos[1] + brush_strokes_2[i].pos[1]) / 2
-            # new_size = (brush_strokes_1[i].size + brush_strokes_2[i].size) / 2
-            new_size = (brush_strokes_1[i].size[0], brush_strokes_1[i].size[1])
-            brush_stroke_offspring.append(BrushStroke(new_color, [int(round(new_x_pos)), int(round(new_y_pos))], new_size))
+        # "I suspect that this method is not so good, easily get stuck in local minima" - JH
+        if self.crossover_method == CrossOverMethods.AVERAGE:
+            for i in range(len(brush_strokes_1)):
+                # Take average all from first and second
+                new_color = (brush_strokes_1[i].color + brush_strokes_2[i].color) / 2
+                new_x_pos = (brush_strokes_1[i].pos[0] + brush_strokes_2[i].pos[0]) / 2
+                new_y_pos = (brush_strokes_1[i].pos[1] + brush_strokes_2[i].pos[1]) / 2
+                # new_size = (brush_strokes_1[i].size + brush_strokes_2[i].size) / 2
+                new_size = ((brush_strokes_1[i].size[0] + brush_strokes_2[i].size[0]) / 2, (brush_strokes_1[i].size[1] + brush_strokes_2[i].size[1]) / 2)
+                new_rot =   (brush_strokes_1[i].rot + brush_strokes_2[i].rot) / 2
+                brush_stroke_offspring.append(BrushStroke(new_color, [int(round(new_x_pos)), int(round(new_y_pos))], new_size, new_rot))
+        elif self.crossover_method == CrossOverMethods.RANDOM:
+            for i in range(len(brush_strokes_1)):
+                brush_stroke_offspring.append(create_random_brushstroke(self.width, self.height, self.brush_size))
+        else:
+            sys.exit("Invalid crossover_method, expecting average|random")
+
 
 
         return StrokeLayer(brush_stroke_offspring)
@@ -99,11 +119,5 @@ class Population:
 def create_random_strokelayer(num_brushstrokes, width, height, brush_size):
     brushstrokes = []
     for i in range(num_brushstrokes):
-        color = np.random.rand(1)[0]
-        # color = 1.0
-        pos = [
-            np.random.randint(width - brush_size[0], size=1)[0],
-            np.random.randint(height - brush_size[1], size=1)[0]
-        ]
-        brushstrokes.append(BrushStroke(color, pos, brush_size))
+        brushstrokes.append(create_random_brushstroke(width, height, brush_size))
     return StrokeLayer(brushstrokes)
