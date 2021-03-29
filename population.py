@@ -2,13 +2,19 @@ import numpy as np
 import sys
 from brush_stroke import BrushStroke, create_random_brushstroke
 from stroke_layer import StrokeLayer
+from enum import Enum
+
+class CrossOverMethods(Enum):
+    RANDOM = 1
+    AVERAGE = 2
+
 
 class Population:
 
     def __init__(self, size, num_brushstrokes, width, height, brush_max_size):
         self.stroke_layers = []
         self.size = size
-        self.crossover_method = "random" # TODO: pass this in parameter
+        self.crossover_method = CrossOverMethods.RANDOM # TODO: pass this in parameter
         # TODO pass this as parameters in evolve instead of storing in class.. maybe
         self.width = width
         self.height = height
@@ -77,7 +83,7 @@ class Population:
 
         brush_stroke_offspring = []
         # "I suspect that this method is not so good, easily get stuck in local minima" - JH
-        if self.crossover_method == "average":
+        if self.crossover_method == CrossOverMethods.AVERAGE:
             for i in range(len(brush_strokes_1)):
                 # Take average all from first and second
                 new_color = (brush_strokes_1[i].color + brush_strokes_2[i].color) / 2
@@ -87,7 +93,7 @@ class Population:
                 new_size = ((brush_strokes_1[i].size[0] + brush_strokes_2[i].size[0]) / 2, (brush_strokes_1[i].size[1] + brush_strokes_2[i].size[1]) / 2)
                 new_rot =   (brush_strokes_1[i].rot + brush_strokes_2[i].rot) / 2
                 brush_stroke_offspring.append(BrushStroke(new_color, [int(round(new_x_pos)), int(round(new_y_pos))], new_size, new_rot))
-        elif self.crossover_method == "random":
+        elif self.crossover_method == CrossOverMethods.RANDOM:
             for i in range(len(brush_strokes_1)):
                 brush_stroke_offspring.append(create_random_brushstroke(self.width, self.height, self.brush_size))
         else:
