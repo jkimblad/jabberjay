@@ -3,6 +3,7 @@
 import cv2
 import numpy as np
 import random
+import time
 
 from population import Population
 # from brush_stroke import BrushStroke
@@ -96,6 +97,7 @@ def main():
 
     show_painting("target", target)
     for i in range(num_generations):
+        timeStart = time.perf_counter()
         for j in range(num_evolves):
             population.evolve(
                 mutation_rate,
@@ -107,7 +109,11 @@ def main():
         # Chose top-scoring stroke_layer and add it to canvas
         for stroke in population.stroke_layers[0].brush_strokes:
             canvas = paint(canvas, brush_img, stroke)
+        timeStop = time.perf_counter()
 
+        timeDiff = timeStop - timeStart
+        fps = 1 / timeDiff
+        print ("FPS: " + str(fps))
         debug_canvas = np.array([0])
         # Draw each StrokeLayer in the population in a new window after num_generations
         if (DEBUG):
