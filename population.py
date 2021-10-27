@@ -19,6 +19,7 @@ class Population:
         self.width = width
         self.height = height
         self.brush_size = brush_max_size
+        self.num_brushstrokes = num_brushstrokes
 
         # Populate the population
         for i in range(size):
@@ -49,6 +50,18 @@ class Population:
 
             self.__populate(offspring)
             i += 1
+    # Evolve into next generation
+    def random_evolve(self, canvas, brush_img, target, paint):
+        # kill all
+        self.stroke_layers = []
+
+        for i in range(self.size):
+            sl = create_random_strokelayer(
+                self.num_brushstrokes, self.width, self.height, self.brush_size)
+            self.__populate(sl)
+        
+        self.__score_strokelayers(canvas, target, brush_img, paint)
+
 
     def __populate(self, ls):
         self.stroke_layers.append(ls)
@@ -110,10 +123,9 @@ class Population:
         # Check that the kill_rate will leave at least 2 pop
         new_pop_size = int(pop_size * (1 - kill_rate))
         if new_pop_size <= 2:
-            raise Exception("Kill Ratio is too agressive")
+            raise Exception("Kill Ratio is too aggressive")
 
         self.stroke_layers = self.stroke_layers[:new_pop_size]
-
 
 # TODO: refactor into population
 def create_random_strokelayer(num_brushstrokes, width, height, brush_size):

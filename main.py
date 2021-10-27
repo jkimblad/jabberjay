@@ -73,9 +73,9 @@ def main():
     width = 500
     height = 500
 
-    num_brushstrokes = 4
-    kill_rate = 0.5
-    mutation_rate = 0.1
+    num_brushstrokes = 1
+    kill_rate = 1.0
+    mutation_rate = 0.0
 
     # create painting
     canvas = np.zeros([width, height])
@@ -91,7 +91,7 @@ def main():
         height,
         brush_max_size)
 
-    num_evolves = 3
+    num_evolves = 1
 
     window_name = 'Image de Lena'
     cv2.namedWindow(window_name)
@@ -123,17 +123,16 @@ def main():
 
         # run algo on target image
         for j in range(num_evolves):
-            population.evolve(
-                mutation_rate,
-                kill_rate,
+            population.random_evolve(
                 canvas,
                 brush_img,
                 target,
                 paint)
 
         # Chose top-scoring stroke_layer and add it to canvas
-        for stroke in population.stroke_layers[0].brush_strokes:
-            canvas = paint(canvas, brush_img, stroke)
+        for layer in population.stroke_layers[:3]:
+            for stroke in layer.brush_strokes:
+                canvas = paint(canvas, brush_img, stroke)
         timeStop = time.perf_counter()
         timeDiff = timeStop - timeStart
         fps = 1 / timeDiff
