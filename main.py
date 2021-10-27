@@ -3,6 +3,7 @@
 import cv2
 import numpy as np
 import random
+import time
 
 from population import Population
 # from brush_stroke import BrushStroke
@@ -107,6 +108,7 @@ def main():
     canvas = np.zeros([width, height])
 
     while True:
+        timeStart = time.perf_counter()
         # Read image input
         ret, frame = cam.read()
         if not ret:
@@ -132,6 +134,11 @@ def main():
         # Chose top-scoring stroke_layer and add it to canvas
         for stroke in population.stroke_layers[0].brush_strokes:
             canvas = paint(canvas, brush_img, stroke)
+        timeStop = time.perf_counter()
+        timeDiff = timeStop - timeStart
+        fps = 1 / timeDiff
+        print ("FPS: " + str(fps))
+
 
         show_painting(window_name, canvas)
 
